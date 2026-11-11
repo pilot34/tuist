@@ -153,6 +153,46 @@ struct TargetImportsScannerTests {
         #expect(result == ["SecondTarget"])
         #expect(await sourceCodeReader.maxConcurrentReads <= 3)
     }
+
+    @Test func imports_readsEachFileOnceAcrossDifferentReachableModules() async throws {
+        // Given
+        let sourceCodeReader = CountingSourceCodeReader(
+            sourceCode: """
+            import A
+            #if canImport(B)
+            import B
+            #endif
+            """
+        )
+        let target = Target.test(
+            name: "FirstTarget",
+            sources: [SourceFile(path: try AbsolutePath(validating: "/Target/Sources/File.swift"))]
+        )
+        let subject = TargetImportsScanner(sourceCodeReader: sourceCodeReader.read(at:))
+
+        // When
+        let withoutB = try await subject.imports(for: target, reachableModules: [])
+        let withB = try await subject.imports(for: target, reachableModules: ["B"])
+
+        // Then
+        #expect(withoutB == ["A"])
+        #expect(withB == ["A", "B"])
+        #expect(await sourceCodeReader.reads == 1)
+    }
+}
+
+private actor CountingSourceCodeReader {
+    private let sourceCode: String
+    private(set) var reads = 0
+
+    init(sourceCode: String) {
+        self.sourceCode = sourceCode
+    }
+
+    func read(at _: AbsolutePath) async throws -> String? {
+        reads += 1
+        return sourceCode
+    }
 }
 
 private actor ConcurrentSourceCodeReader {
