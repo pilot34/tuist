@@ -8,7 +8,7 @@
     import TuistExtension
     import TuistSupport
 
-    public struct CacheWarmCommand: AsyncParsableCommand, ProjectPathProviding {
+    public struct CacheWarmCommand: AsyncParsableCommand, ProjectPathProviding, GraphOutputCommand {
         public init() {}
 
         public static var configuration: CommandConfiguration {
@@ -26,6 +26,14 @@
             envKey: .cachePath
         )
         public var path: String?
+
+        @Option(
+            name: .long,
+            help: "Also export the project graph to graph.json in this directory, in the format of `tuist graph --format json`, without loading the graph again.",
+            completion: .directory,
+            envKey: .graphExportPath
+        )
+        public var graphOutputPath: String?
 
         @Option(
             name: .shortAndLong,

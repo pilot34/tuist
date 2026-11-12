@@ -156,15 +156,7 @@ struct GraphService {
         graph: XcodeGraph.Graph,
         at path: AbsolutePath
     ) async throws {
-        let encoder = JSONEncoder()
-        encoder.outputFormatting = [.sortedKeys, .prettyPrinted, .withoutEscapingSlashes]
-        let jsonData = try encoder.encode(graph)
-        let jsonString = String(data: jsonData, encoding: .utf8)
-        guard let jsonString else {
-            throw GraphServiceError.encodingError(GraphFormat.json.rawValue)
-        }
-
-        try await fileSystem.writeText(jsonString, at: path)
+        try await GraphJSONExporter(fileSystem: fileSystem).export(graph: graph, at: path)
     }
 
     private func exportDOTRepresentation(from graphVizGraph: GraphViz.Graph, at filePath: AbsolutePath) async throws {

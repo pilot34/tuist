@@ -128,7 +128,7 @@
         var passthroughXcodeBuildArguments: [String] = []
     }
 
-    public struct BuildRunCommand: AsyncParsableCommand, LogConfigurableCommand, ProjectPathProviding {
+    public struct BuildRunCommand: AsyncParsableCommand, LogConfigurableCommand, ProjectPathProviding, GraphOutputCommand {
         public init() {}
 
         public static var configuration: CommandConfiguration {
@@ -147,6 +147,14 @@
         var buildOptions: BuildOptions
 
         public var path: String? { buildOptions.path }
+
+        @Option(
+            name: .long,
+            help: "Also export the project graph to graph.json in this directory, in the format of `tuist graph --format json`, without loading the graph again.",
+            completion: .directory,
+            envKey: .graphExportPath
+        )
+        public var graphOutputPath: String?
 
         @Flag(
             help: "Ignore binary cache and use sources only.",

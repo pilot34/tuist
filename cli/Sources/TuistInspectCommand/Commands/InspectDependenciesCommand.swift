@@ -10,7 +10,7 @@
         case json
     }
 
-    struct InspectDependenciesCommand: AsyncParsableCommand, NooraReadyCommand {
+    struct InspectDependenciesCommand: AsyncParsableCommand, NooraReadyCommand, GraphOutputCommand {
         static var configuration: CommandConfiguration {
             CommandConfiguration(
                 commandName: "dependencies",
@@ -25,6 +25,14 @@
             envKey: .inspectDependenciesPath
         )
         var path: String?
+
+        @Option(
+            name: .long,
+            help: "Also export the project graph to graph.json in this directory, in the format of `tuist graph --format json`, without loading the graph again.",
+            completion: .directory,
+            envKey: .graphExportPath
+        )
+        var graphOutputPath: String?
 
         @Option(
             name: .long,

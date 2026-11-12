@@ -205,6 +205,15 @@ public struct ManifestGraphLoader: ManifestGraphLoading {
         // Check circular dependencies
         try graphLoaderLinter.lintWorkspace(workspace: workspaceModels, projects: projectsModels)
 
+        // Export the graph before any mapper runs, which is the graph `tuist graph` exports, when the command asks for it
+        if let graphOutput = GraphOutput.current, graphOutput.claimExport() {
+            let (unmappedGraph, _) = try await localPackageCoverageTargetsValidator.validate(
+                graph: try await GraphLoader().loadWorkspace(workspace: workspaceModels, projects: projectsModels),
+                disableSandbox: disableSandbox
+            )
+            try await GraphJSONExporter().export(graph: unmappedGraph, at: graphOutput.path)
+        }
+
         // Apply any registered model mappers
         let (updatedModels, modelMapperSideEffects) = try await workspaceMapper.map(
             workspace: .init(workspace: workspaceModels, projects: projectsModels)

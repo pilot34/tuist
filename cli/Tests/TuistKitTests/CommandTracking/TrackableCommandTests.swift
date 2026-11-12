@@ -574,6 +574,31 @@ final class TrackableCommandTests: TuistTestCase {
             .writeJobSummary(testRunReports: .any, buildRunReports: .any, runURL: .any)
             .called(0)
     }
+
+    func test_whenCommandAsksForAGraphOutput_runsItWithTheGraphOutputSet() async throws {
+        // Given
+        let outputDirectory = try temporaryPath()
+        try makeSubject(command: GraphOutputObservingCommand(graphOutputPath: outputDirectory.pathString))
+
+        // When
+        try await subject.run(fullHandle: nil, serverURL: nil, shouldTrackAnalytics: false)
+
+        // Then
+        let observedPath = await GraphOutputObservingCommand.recorder.path
+        XCTAssertEqual(observedPath, outputDirectory.appending(component: "graph.json"))
+    }
+
+    func test_whenCommandDoesntAskForAGraphOutput_runsItWithoutGraphOutput() async throws {
+        // Given
+        try makeSubject(command: GraphOutputObservingCommand(graphOutputPath: nil))
+
+        // When
+        try await subject.run(fullHandle: nil, serverURL: nil, shouldTrackAnalytics: false)
+
+        // Then
+        let observedPath = await GraphOutputObservingCommand.recorder.path
+        XCTAssertNil(observedPath)
+    }
 }
 
 private struct DelayedUploadAnalyticsService: UploadAnalyticsServicing {
@@ -689,5 +714,29 @@ private struct ResolvedMetadataCommand: TrackableParsableCommand, AsyncParsableC
                 commandArguments: ["xcodebuild", "build", "-workspace", "App.xcworkspace"]
             )
         )
+    }
+}
+
+private actor GraphOutputRecorder {
+    private(set) var path: AbsolutePath?
+
+    func record(_ path: AbsolutePath?) {
+        self.path = path
+    }
+}
+
+private struct GraphOutputObservingCommand: TrackableParsableCommand, AsyncParsableCommand, GraphOutputCommand {
+    static let recorder = GraphOutputRecorder()
+
+    static var configuration: CommandConfiguration {
+        CommandConfiguration(commandName: "observe-graph-output")
+    }
+
+    var graphOutputPath: String?
+
+    var analyticsRequired: Bool { false }
+
+    func run() async throws {
+        await Self.recorder.record(GraphOutput.current?.path)
     }
 }

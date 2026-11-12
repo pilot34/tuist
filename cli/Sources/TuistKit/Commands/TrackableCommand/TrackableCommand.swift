@@ -90,6 +90,7 @@ public class TrackableCommand {
         let ranAt = clock.now
         let path = try await CommandArguments.path(in: commandArguments, command: command)
         let runMetadataStorage = RunMetadataStorage()
+        let graphOutput = try await GraphOutput.requested(by: command)
 
         // Up front, so that the path holds this run's report or nothing at all. Writing it only
         // happens once the run URL is known, and everything between here and there can fail: the
@@ -106,10 +107,12 @@ public class TrackableCommand {
         try await ServerAuthenticationConfig.withOptionalAuthentication(usesOptionalAuthentication) {
             try await RunMetadataStorage.$current.withValue(runMetadataStorage) {
                 do {
-                    if var asyncCommand = command as? AsyncParsableCommand {
-                        try await asyncCommand.run()
-                    } else {
-                        try command.run()
+                    try await GraphOutput.$current.withValue(graphOutput) {
+                        if var asyncCommand = command as? AsyncParsableCommand {
+                            try await asyncCommand.run()
+                        } else {
+                            try command.run()
+                        }
                     }
                     if let fullHandle, let serverURL, shouldTrackAnalytics {
                         await uploadCommandEvent(

@@ -115,6 +115,10 @@ public enum EnvKey: String, CaseIterable {
     case inspectDependenciesPath = "TUIST_INSPECT_DEPENDENCIES_PATH"
     case inspectDependenciesOnly = "TUIST_INSPECT_DEPENDENCIES_ONLY"
 
+    // GRAPH EXPORT
+
+    case graphExportPath = "TUIST_GRAPH_EXPORT_PATH"
+
     // INSPECT BUILD
 
     case inspectBuildPath = "TUIST_INSPECT_BUILD_PATH"

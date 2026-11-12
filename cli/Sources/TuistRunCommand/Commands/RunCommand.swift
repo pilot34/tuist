@@ -1,6 +1,7 @@
 import ArgumentParser
 import Foundation
 import TuistEnvKey
+import TuistSupport
 
 enum Runnable: ExpressibleByArgument, Equatable {
     init?(argument: String) {
@@ -21,7 +22,7 @@ enum Runnable: ExpressibleByArgument, Equatable {
     case specifier(displayName: String, specifier: String)
 }
 
-public struct RunCommand: AsyncParsableCommand {
+public struct RunCommand: AsyncParsableCommand, GraphOutputCommand {
     public init() {}
 
     public static var configuration: CommandConfiguration {
@@ -56,6 +57,14 @@ public struct RunCommand: AsyncParsableCommand {
         completion: .directory
     )
     var path: String?
+
+    @Option(
+        name: .long,
+        help: "Also export the project graph to graph.json in this directory, in the format of `tuist graph --format json`, without loading the graph again.",
+        completion: .directory,
+        envKey: .graphExportPath
+    )
+    public var graphOutputPath: String?
 
     @Option(help: "The device name to run on.")
     var device: String?

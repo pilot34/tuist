@@ -5,7 +5,7 @@ import TuistExtension
 import TuistSupport
 
 /// A command to hash an Xcode or generated project.
-public struct HashCacheCommand: AsyncParsableCommand, ProjectPathProviding {
+public struct HashCacheCommand: AsyncParsableCommand, ProjectPathProviding, GraphOutputCommand {
     public init() {}
 
     public static var configuration: CommandConfiguration {
@@ -23,6 +23,14 @@ public struct HashCacheCommand: AsyncParsableCommand, ProjectPathProviding {
         envKey: .hashCachePath
     )
     public var path: String?
+
+    @Option(
+        name: .long,
+        help: "Also export the project graph to graph.json in this directory, in the format of `tuist graph --format json`, without loading the graph again.",
+        completion: .directory,
+        envKey: .graphExportPath
+    )
+    public var graphOutputPath: String?
 
     @Option(
         name: .shortAndLong,
